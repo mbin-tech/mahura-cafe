@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>آپلود و تطبیق خودکار</title>
+    <title>آپلود و تطبیق خودکار v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -60,11 +60,11 @@
 <body>
 
 <h1>🖼️ آپلود و تطبیق خودکار عکس‌ها</h1>
-<p>عکس‌ها با اسم اصلی ذخیره و خودکار به منو وصل می‌شن</p>
+<p>عکس‌ها با اسم امن در Storage ذخیره می‌شن و با اسم فارسی به منو وصل می‌شن</p>
 
 <div class="box">
-    <h2>قدم ۱: پاک کردن Storage (اختیاری)</h2>
-    <button class="btn red" onclick="clearStorage()">🗑️ پاک کردن عکس‌های قبلی</button>
+    <h2>قدم ۱: پاک کردن Storage</h2>
+    <button class="btn red" onclick="clearStorage()">🗑️ پاک کردن همه عکس‌ها</button>
 </div>
 
 <div class="box">
@@ -104,45 +104,56 @@ function filesPicked(event) {
     document.getElementById('uploadBtn').disabled = false;
 }
 
+// نرمال‌سازی اسم: حذف فاصله، پرانتز، و کاراکترهای خاص
+function normalizeName(name) {
+    return name
+        .toLowerCase()
+        .replace(/\s+/g, '')       // حذف فاصله
+        .replace(/[()_\-،,]/g, '') // حذف پرانتز و خط تیره و کاما
+        .replace(/‌/g, '');         // حذف نیم‌فاصله
+}
+
 async function clearStorage() {
     if (!confirm('همه عکس‌های قبلی پاک بشن؟')) return;
-    
+
     log('🗑️ در حال پاک کردن...', 'info');
-    
+
     var listResult = await db.storage.from('menu-images').list('', { limit: 500 });
     if (listResult.error) {
         log('❌ خطا: ' + listResult.error.message, 'error');
         return;
     }
-    
+
     var files = listResult.data.filter(f => f.name);
     if (files.length === 0) {
         log('✅ Storage خالیه', 'success');
         return;
     }
-    
+
     var names = files.map(f => f.name);
-    var delResult = await db.storage.from('menu-images').remove(names);
-    
-    if (delResult.error) {
-        log('❌ خطا در حذف: ' + delResult.error.message, 'error');
-        return;
+    // حذف در دسته‌های ۵۰ تایی
+    for (var i = 0; i < names.length; i += 50) {
+        var chunk = names.slice(i, i + 50);
+        var delResult = await db.storage.from('menu-images').remove(chunk);
+        if (delResult.error) {
+            log('❌ خطا: ' + delResult.error.message, 'error');
+            return;
+        }
     }
-    
+
     log('✅ ' + names.length + ' عکس پاک شد', 'success');
 }
 
 async function startUpload() {
     if (pickedFiles.length === 0) return;
-    
+
     document.getElementById('uploadBtn').disabled = true;
     document.getElementById('log').innerHTML = '';
-    
+
     log('🚀 شروع آپلود ' + pickedFiles.length + ' عکس...', 'info');
     log('', 'info');
-    
+
     // خواندن آیتم‌ها
-    log('📋 خواندن آیتم‌های جدول...', 'info');
     var itemsResult = await db.from('menu_items').select('id, name, img');
     if (itemsResult.error) {
         log('❌ خطا: ' + itemsResult.error.message, 'error');
@@ -151,71 +162,70 @@ async function startUpload() {
     var allItems = itemsResult.data;
     log('✅ ' + allItems.length + ' آیتم در جدول', 'success');
     log('', 'info');
-    
-    // آپلود هر عکس با اسم نرمال‌شده
-    var uploadedMap = {}; // نام بدون پسوند → url
-    
+
+    // ساخت نقشه: نام نرمال‌شده آیتم → id
+    var itemMap = {};
+    allItems.forEach(function(item) {
+        itemMap[normalizeName(item.name)] = item;
+    });
+
+    var uploadedCount = 0;
+    var matchedCount = 0;
+    var notMatched = 0;
+
+    // آپلود هر عکس با اسم امن
     for (var i = 0; i < pickedFiles.length; i++) {
         var file = pickedFiles[i];
         var originalName = file.name;
-        var ext = originalName.split('.').pop();
-        var baseName = originalName.replace('.' + ext, '');
-        
-        // اسم امن: جایگزینی فاصله با _ (حفظ فارسی)
-        var safeName = baseName.replace(/\s+/g, '_') + '.' + ext;
-        var key = baseName.replace(/\s+/g, '_');
-        
+        var ext = originalName.split('.').pop().toLowerCase();
+        var baseName = originalName.replace(/\.[^.]+$/, '');
+
+        // اسم امن: فقط استفاده از شماره یکتا
+        var safeName = 'img_' + (i + 1) + '_' + Date.now() + '.' + ext;
+
         log('📷 [' + (i+1) + '/' + pickedFiles.length + '] ' + originalName, 'info');
-        
+
         var uploadResult = await db.storage
             .from('menu-images')
             .upload(safeName, file, { cacheControl: '3600', upsert: true });
-        
+
         if (uploadResult.error) {
             log('  ❌ خطا: ' + uploadResult.error.message, 'error');
             continue;
         }
-        
+
+        uploadedCount++;
         var url = db.storage.from('menu-images').getPublicUrl(safeName).data.publicUrl;
-        uploadedMap[key] = url;
         log('  ✅ آپلود شد', 'success');
-    }
-    
-    log('', 'info');
-    log('🔗 شروع تطبیق خودکار...', 'info');
-    log('', 'info');
-    
-    // تطبیق با آیتم‌ها
-    var matched = 0;
-    var notMatched = 0;
-    
-    for (var j = 0; j < allItems.length; j++) {
-        var item = allItems[j];
-        var itemKey = item.name.replace(/\s+/g, '_');
-        
-        if (uploadedMap[itemKey]) {
+
+        // تطبیق با آیتم
+        var normalized = normalizeName(baseName);
+        var matched = itemMap[normalized];
+
+        if (matched) {
             var updateResult = await db
                 .from('menu_items')
-                .update({ img: uploadedMap[itemKey] })
-                .eq('id', item.id);
-            
+                .update({ img: url })
+                .eq('id', matched.id);
+
             if (updateResult.error) {
-                log('❌ "' + item.name + '": ' + updateResult.error.message, 'error');
+                log('  ❌ خطا در ذخیره: ' + updateResult.error.message, 'error');
             } else {
-                log('✅ "' + item.name + '" ← لینک شد', 'success');
-                matched++;
+                log('  🔗 لینک شد به: "' + matched.name + '"', 'success');
+                matchedCount++;
             }
         } else {
+            log('  ⚠️ آیتمی با نام "' + baseName + '" پیدا نشد', 'warning');
             notMatched++;
         }
     }
-    
+
     log('', 'info');
     log('🎉 تمام!', 'info');
-    log('✅ تطبیق موفق: ' + matched, 'success');
-    log('⚠️ بدون عکس: ' + notMatched + ' (این آیتم‌ها عکس ندارن)', 'warning');
+    log('📤 آپلود موفق: ' + uploadedCount + ' از ' + pickedFiles.length, 'success');
+    log('🔗 تطبیق موفق: ' + matchedCount, 'success');
+    log('⚠️ بدون تطبیق: ' + notMatched, 'warning');
 }
-
 </script>
 </body>
 </html>
