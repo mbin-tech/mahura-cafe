@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت کافه ماهورا</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Vazirmatn", sans-serif;
+            background: #0a0a14;
+            color: #f5ede3;
+            padding: 15px;
+            padding-bottom: 100px;
+        }
+        h1 { color: #c8a97e; text-align: center; font-size: 22px; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 20px; }
+
+        /* Login */
+        #loginScreen {
+            max-width: 380px;
+            margin: 60px auto;
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 20px;
+            padding: 30px 24px;
+        }
+        #loginScreen h2 {
+            color: #c8a97e;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        #loginScreen input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            border: 1px solid #2d2d44;
+            background: #0a0a14;
+            color: #f5ede3;
+            font-family: inherit;
+            font-size: 15px;
+            text-align: center;
+        }
+        #loginScreen input:focus { border-color: #c8a97e; outline: none; }
+        #loginScreen button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: #c8a97e;
+            color: #1a1a2e;
+            font-weight: 700;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 8px;
+        }
+        #loginScreen .err { color: #e74c3c; font-size: 13px; text-align: center; margin-bottom: 10px; }
+
+        /* Panel */
+        #adminPanel { display: none; }
+        .user-bar {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-bar .email { color: #c8a97e; font-size: 13px; }
+        .user-bar button {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; }
+        .filter-bar button {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #1a1a2e;
+            color: #ddd;
+            border: 1px solid #2d2d44;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .filter-bar button.active {
+            background: #c8a97e;
+            color: #1a1a2e;
+            border-color: #c8a97e;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 14px;
+            background: rgba(200, 169, 126, 0.1);
+            border: 1px dashed #c8a97e;
+            color: #c8a97e;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            margin-bottom: 15px;
+        }
+
+        .item {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .item .row { display: flex; gap: 10px; margin-bottom: 8px; }
+        .item .row:last-child { margin-bottom: 0; }
+        .item .field { flex: 1; }
+        .item label {
+            display: block;
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .item input, .item select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #2d2d44;
+            background: #0a0a14;
+            color: #f5ede3;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .item input:focus, .item select:focus { border-color: #c8a97e; outline: none; }
+        .item .actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .item .delete-btn {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        /* دکمه آپلود عکس */
+        .upload-btn {
+            background: rgba(200, 169, 126, 0.15);
+            color: #c8a97e;
+            border: 1px dashed #c8a97e;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .upload-btn:hover { background: rgba(200, 169, 126, 0.3); }
+        .upload-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid #c8a97e;
+            flex-shrink: 0;
+            background: #0a0a14;
+        }
+
+        .save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 20, 0.97);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(200, 169, 126, 0.2);
+            padding: 12px 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+        .save-bar button {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .save-bar .save { background: #c8a97e; color: #1a1a2e; }
+        .save-bar .save:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            z-index: 999;
+            display: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            text-align: center;
+        }
+        .status.success { background: #27ae60; color: #fff; display: block; }
+        .status.error { background: #e74c3c; color: #fff; display: block; }
+        .status.loading { background: #c8a97e; color: #1a1a2e; display: block; }
+
+        .empty { text-align: center; color: #888; padding: 30px; }
+    </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="loginScreen">
+    <h2>🔐 ورود به پنل مدیریت</h2>
+    <div class="err" id="loginError"></div>
+    <input type="email" id="email" placeholder="ایمیل" autocomplete="email">
+    <input type="password" id="password" placeholder="رمز عبور" autocomplete="current-password">
+    <button onclick="login()">ورود</button>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPanel">
+    <h1>⚙️ پنل مدیریت کافه ماهورا</h1>
+    <p class="subtitle">تغییرات رو اعمال کن و ذخیره بزن</p>
+
+    <div class="user-bar">
+        <span class="email" id="userEmail">-</span>
+        <button onclick="logout()">خروج</button>
+    </div>
+
+    <div class="filter-bar" id="filterBar"></div>
+    <button class="add-btn" onclick="addNewItem()">➕ آیتم جدید</button>
+    <div id="itemsList"></div>
+
+    <div class="save-bar">
+        <button class="save" id="saveBtn" onclick="saveAllChanges()">💾 ذخیره تغییرات</button>
+    </div>
+</div>
+
+<div class="status" id="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+var db = null;
+var allItems = [];
+var editedItems = {};
+var deletedItems = [];
+var newItems = [];
+var currentFilter = 'all';
+
+var categoryNames = {
+    'coffee': '☕ قهوه',
+    'tea': '🍵 چای',
+    'iced': '🧊 آیس',
+    'breakfast': '🍳 صبحانه',
+    'cold': '🥤 سرد',
+    'shake': '🥛 شیک',
+    'icecream': '🍦 بستنی',
+    'hot': '☕ هات',
+    'cake': '🍰 کیک',
+    'fastfood': '🍔 فست‌فود',
+    'snack': '🥪 میان وعده'
+};
+
+// Init
+if (typeof window.supabase !== 'undefined') {
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+// Check auth on load
+checkAuth();
+
+async function checkAuth() {
+    if (!db) {
+        showStatus('خطا در اتصال به دیتابیس', 'error');
+        return;
+    }
+    var session = await db.auth.getSession();
+    if (session.data.session) {
+        showAdminPanel();
+        loadItems();
+    } else {
+        showLoginScreen();
+    }
+}
+
+function showLoginScreen() {
+    document.getElementById('loginScreen').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
+}
+
+function showAdminPanel() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+}
+
+async function login() {
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    var errEl = document.getElementById('loginError');
+
+    if (!email || !password) {
+        errEl.textContent = 'ایمیل و رمز عبور را وارد کنید';
+        return;
+    }
+
+    errEl.textContent = '';
+    showStatus('در حال ورود...', 'loading');
+
+    var result = await db.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+
+    if (result.error) {
+        errEl.textContent = 'خطا: ' + result.error.message;
+        hideStatus();
+        return;
+    }
+
+    hideStatus();
+    showAdminPanel();
+    document.getElementById('userEmail').textContent = email;
+    loadItems();
+}
+
+async function logout() {
+    await db.auth.signOut();
+    location.reload();
+}
+
+async function loadItems() {
+    showStatus('در حال بارگذاری...', 'loading');
+
+    var result = await db
+        .from('menu_items')
+        .select('*')
+        .order('id', { ascending: true });
+
+    if (result.error) {
+        showStatus('خطا: ' + result.error.message, 'error');
+        return;
+    }
+
+    allItems = result.data || [];
+
+    var session = await db.auth.getSession();
+    if (session.data.session) {
+        document.getElementById('userEmail').textContent = session.data.session.user.email;
+    }
+
+    hideStatus();
+    renderFilter();
+    renderItems();
+}
+
+function renderFilter() {
+    var html = '<button class="' + (currentFilter === 'all' ? 'active' : '') + '" onclick="filterCat(\'all\')">همه</button>';
+    for (var cat in categoryNames) {
+        html += '<button class="' + (currentFilter === cat ? 'active' : '') + '" onclick="filterCat(\'' + cat + '\')">' + categoryNames[cat] + '</button>';
+    }
+    document.getElementById('filterBar').innerHTML = html;
+}
+
+function filterCat(cat) {
+    currentFilter = cat;
+    renderFilter();
+    renderItems();
+}
+
+function renderItems() {
+    var container = document.getElementById('itemsList');
+    var html = '';
+    var count = 0;
+
+    // New items first
+    for (var n = 0; n < newItems.length; n++) {
+        var item = newItems[n];
+        if (currentFilter !== 'all' && item.category !== currentFilter) continue;
+        count++;
+        html += renderItemHtml('new-' + n, item, true);
+    }
+
+    // Existing items
+    for (var i = 0; i < allItems.length; i++) {
+        var item = allItems[i];
+        if (currentFilter !== 'all' && item.category !== currentFilter) continue;
+        if (deletedItems.indexOf(item.id) !== -1) continue;
+        count++;
+        var edited = editedItems[item.id] || item;
+        html += renderItemHtml(item.id, edited, false);
+    }
+
+    if (count === 0) html = '<p class="empty">آیتمی وجود نداره</p>';
+    container.innerHTML = html;
+}
+
+function renderItemHtml(id, item, isNew) {
+    var catOptions = '';
+    for (var cat in categoryNames) {
+        var selected = (item.category === cat) ? 'selected' : '';
+        catOptions += '<option value="' + cat + '" ' + selected + '>' + categoryNames[cat] + '</option>';
+    }
+
+    // پیش‌نمایش عکس
+    var imgPreview = '';
+    if (item.img && item.img.indexOf('http') === 0) {
+        imgPreview = '<img src="' + item.img + '" class="upload-preview" onerror="this.style.display=\'none\'">';
+    }
+
+    return '<div class="item">' +
+        '<div class="row">' +
+            '<div class="field"><label>نام</label>' +
+            '<input type="text" value="' + escapeHtml(item.name || '') + '" onchange="updateField(\'' + id + '\', \'name\', this.value)"></div>' +
+        '</div>' +
+        '<div class="row">' +
+            '<div class="field"><label>قیمت (تومان)</label>' +
+            '<input type="number" value="' + (item.price || 0) + '" onchange="updateField(\'' + id + '\', \'price\', parseInt(this.value) || 0)"></div>' +
+            '<div class="field"><label>قیمت دوم (اختیاری)</label>' +
+            '<input type="number" value="' + (item.price2 || '') + '" onchange="updateField(\'' + id + '\', \'price2\', this.value ? parseInt(this.value) : null)"></div>' +
+        '</div>' +
+        '<div class="row">' +
+            '<div class="field"><label>دسته‌بندی</label>' +
+            '<select onchange="updateField(\'' + id + '\', \'category\', this.value)">' + catOptions + '</select></div>' +
+        '</div>' +
+        '<div class="row">' +
+            '<div class="field"><label>عکس</label>' +
+                '<div style="display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">' +
+                    imgPreview +
+                    '<input type="file" id="file-' + id + '" accept="image/*" style="display:none;" onchange="uploadImage(event, \'' + id + '\')">' +
+                    '<button class="upload-btn" onclick="document.getElementById(\'file-' + id + '\').click()">📷 آپلود عکس</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="row">' +
+            '<div class="field"><label>توضیحات</label>' +
+            '<input type="text" value="' + escapeHtml(item.description || '') + '" onchange="updateField(\'' + id + '\', \'description\', this.value)"></div>' +
+        '</div>' +
+        '<div class="actions">' +
+            '<button class="delete-btn" onclick="deleteItem(\'' + id + '\')">🗑️ حذف</button>' +
+        '</div>' +
+    '</div>';
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function updateField(id, field, value) {
+    if (id.indexOf('new-') === 0) {
+        var idx = parseInt(id.substring(4));
+        newItems[idx][field] = value;
+    } else {
+        if (!editedItems[id]) {
+            editedItems[id] = {};
+            for (var i = 0; i < allItems.length; i++) {
+                if (allItems[i].id == id) {
+                    editedItems[id] = Object.assign({}, allItems[i]);
+                    break;
+                }
+            }
+        }
+        editedItems[id][field] = value;
+    }
+}
+
+function deleteItem(id) {
+    if (!confirm('این آیتم حذف بشه؟')) return;
+
+    if (id.indexOf('new-') === 0) {
+        var idx = parseInt(id.substring(4));
+        newItems.splice(idx, 1);
+    } else {
+        deletedItems.push(parseInt(id));
+        delete editedItems[id];
+    }
+    renderItems();
+}
+
+function addNewItem() {
+    var cat = prompt('دسته‌بندی این آیتم جدید:\n' + Object.keys(categoryNames).join(' / '));
+    if (!cat || !categoryNames[cat]) {
+        alert('دسته اشتباهه!');
+        return;
+    }
+
+    newItems.push({
+        name: 'آیتم جدید',
+        price: 0,
+        price2: null,
+        size1: null,
+        size2: null,
+        description: '',
+        en: '',
+        category: cat,
+        img: ''
+    });
+    renderItems();
+}
+
+// ===== آپلود عکس =====
+async function uploadImage(event, itemId) {
+    var file = event.target.files[0];
+    if (!file) return;
+
+    // بررسی حجم فایل (حداکثر ۵ مگابایت)
+    if (file.size > 5 * 1024 * 1024) {
+        showStatus('❌ حجم عکس بیشتر از ۵ مگابایته!', 'error');
+        return;
+    }
+
+    showStatus('⏳ در حال آپلود عکس...', 'loading');
+
+    // ساخت اسم یکتا
+    var ext = file.name.split('.').pop();
+    var fileName = 'img_' + Date.now() + '.' + ext;
+
+    // آپلود در Supabase Storage
+    var result = await db.storage
+        .from('menu-images')
+        .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+        });
+
+    if (result.error) {
+        showStatus('❌ خطا: ' + result.error.message, 'error');
+        return;
+    }
+
+    // گرفتن لینک عمومی
+    var urlResult = db.storage
+        .from('menu-images')
+        .getPublicUrl(fileName);
+
+    var publicUrl = urlResult.data.publicUrl;
+
+    // ذخیره لینک در آیتم
+    updateField(itemId, 'img', publicUrl);
+
+    showStatus('✅ عکس آپلود شد! حالا "ذخیره تغییرات" رو بزن', 'success');
+
+    // رفرش نمایش
+    setTimeout(function() {
+        renderItems();
+    }, 800);
+}
+
+async function saveAllChanges() {
+    document.getElementById('saveBtn').disabled = true;
+    showStatus('⏳ در حال ذخیره...', 'loading');
+
+    try {
+        // 1. Delete items
+        if (deletedItems.length > 0) {
+            var delResult = await db.from('menu_items').delete().in('id', deletedItems);
+            if (delResult.error) throw delResult.error;
+        }
+
+        // 2. Update existing items
+        for (var id in editedItems) {
+            var updates = editedItems[id];
+            var updResult = await db.from('menu_items').update({
+                name: updates.name,
+                price: updates.price,
+                price2: updates.price2,
+                size1: updates.size1,
+                size2: updates.size2,
+                description: updates.description,
+                en: updates.en,
+                category: updates.category,
+                img: updates.img
+            }).eq('id', id);
+            if (updResult.error) throw updResult.error;
+        }
+
+        // 3. Insert new items
+        if (newItems.length > 0) {
+            var insResult = await db.from('menu_items').insert(newItems);
+            if (insResult.error) throw insResult.error;
+        }
+
+        editedItems = {};
+        deletedItems = [];
+        newItems = [];
+
+        showStatus('✅ تغییرات ذخیره شد!', 'success');
+
+        setTimeout(function() {
+            loadItems();
+        }, 1000);
+
+    } catch (err) {
+        showStatus('❌ خطا: ' + err.message, 'error');
+    }
+
+    document.getElementById('saveBtn').disabled = false;
+}
+
+function showStatus(text, type) {
+    var el = document.getElementById('status');
+    el.textContent = text;
+    el.className = 'status ' + type;
+    if (type !== 'loading') {
+        setTimeout(function() { el.className = 'status'; }, 5000);
+    }
+}
+
+function hideStatus() {
+    document.getElementById('status').className = 'status';
+}
+</script>
+</body>
+</html>

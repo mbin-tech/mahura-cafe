@@ -1,0 +1,281 @@
+
+<!-- eslint-disable -->
+<!-- @ts-nocheck -->
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کافه ماهورا</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ===== LANDING PAGE ===== -->
+    <div id="landing-page">
+        <div class="header-box">
+            <img src="logo.jpg" alt="لوگو" class="header-logo"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22%3E%3Crect fill=%22%23c8a97e%22 width=%2260%22 height=%2260%22 rx=%2230%22/%3E%3Ctext x=%2230%22 y=%2240%22 text-anchor=%22middle%22 font-size=%2226%22 fill=%22%23fff%22 font-family=%22sans-serif%22%3E☕%3C/text%3E%3C/svg%3E'">
+            <h1 class="header-title">کافه <span>ماهورا</span></h1>
+            <p class="header-sub">جایی برای طعم‌های خاص</p>
+            <button class="hero-btn" onclick="goToMainPage()">📖 مشاهده منو</button>
+        </div>
+    </div>
+
+    <!-- ===== MAIN PAGE ===== -->
+    <div id="main-page">
+
+        <!-- لوگوی کوچک -->
+        <img src="logo.jpg" alt="لوگو" class="small-logo"
+             onclick="window.scrollTo({top:0, behavior:'smooth'})"
+             title="بازگشت به بالا"
+             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22 viewBox=%220 0 50 50%22%3E%3Crect fill=%22%23c8a97e%22 width=%2250%22 height=%2250%22 rx=%2225%22/%3E%3Ctext x=%2225%22 y=%2233%22 text-anchor=%22middle%22 font-size=%2222%22 fill=%22%23fff%22 font-family=%22sans-serif%22%3E☕%3C/text%3E%3C/svg%3E'">
+
+        <!-- ===== HAMBURGER MENU ===== -->
+        <button id="menuBtn" onclick="toggleMenu()">☰</button>
+
+        <div id="topMenu">
+            <button onclick="openUserAccount()">👤 حساب کاربری</button>
+            <button id="historyBtn" onclick="openHistory()">📜 تاریخچه سفارشات</button>
+        </div>
+
+        <div id="menuOverlay" onclick="toggleMenu()"></div>
+
+        <!-- ===== USER ACCOUNT MODAL ===== -->
+        <div id="userModal" class="modal" onclick="if(event.target===this) closeUserAccount()">
+            <div class="modal-content">
+                <h2>👤 حساب کاربری</h2>
+                <p class="shop-name">به کافه ماهورا خوش آمدید</p>
+
+                <div id="loginForm" style="text-align:center;">
+                    <div id="errorMsg" class="error-msg"></div>
+                    <div id="successMsg" class="success-msg"></div>
+
+                    <input type="tel" id="phone" placeholder="شماره موبایل (مثلاً 09123456789)">
+                    <input type="text" id="username" placeholder="نام کاربری">
+                    <input type="password" id="password" placeholder="رمز عبور">
+                    <button onclick="registerUser()">ثبت‌نام / ورود</button>
+                </div>
+
+                <div id="userPanel" style="display:none;">
+                    <div style="font-size:18px; font-weight:bold; color:#c8a97e; margin-bottom:10px;">
+                        سلام <span id="loggedUsername"></span> 👋
+                    </div>
+                    <div id="userHistory"></div>
+                    <button onclick="logoutUser()" class="logout-btn" style="background:#e74c3c; color:#fff;">خروج از حساب</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== HISTORY MODAL ===== -->
+        <div id="historyModal" class="modal" onclick="if(event.target===this) closeHistory()">
+            <div class="modal-content">
+                <h2>📜 تاریخچه سفارشات</h2>
+                <p class="shop-name">آخرین سفارش‌های شما</p>
+                <div id="historyList" style="text-align:right; font-size:14px; line-height:2;"></div>
+                <button class="btn-cancel" onclick="closeHistory()">✕ بستن</button>
+            </div>
+        </div>
+
+        <!-- ===== SEARCH BOX ===== -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 جستجو در منو... (مثلاً قهوه، شیک، کیک)" oninput="searchMenu()">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <!-- ===== GALLERY SLIDER ===== -->
+        <section class="gallery-slider">
+            <div class="slides-wrapper" id="sliderWrapper">
+                <div class="slide">
+                    <img src="team1.png" alt="تیم ماهورا" onclick="openLightbox(this.src)"
+                         onerror="this.outerHTML='<div class=no-img>📸 عکس ۱</div>'">
+                </div>
+                <div class="slide">
+                    <img src="team2.jpg" alt="باریستا" onclick="openLightbox(this.src)"
+                         onerror="this.outerHTML='<div class=no-img>📸 عکس ۲</div>'">
+                </div>
+                <div class="slide">
+                    <img src="team3.jpg" alt="دستگاه اسپرسو" onclick="openLightbox(this.src)"
+                         onerror="this.outerHTML='<div class=no-img>📸 عکس ۳</div>'">
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== MENU ===== -->
+        <section class="menu-section" id="menuSection">
+            <h2 class="section-title">☕ منو</h2>
+            <p class="section-sub">نوشیدنی‌های گرم و سرد</p>
+
+            <div id="categoryHome" class="category-home">
+    <div class="home-card" onclick="openCategory('coffee')">
+        <img src="bg-coffee.jpg" class="home-card-bg" alt="قهوه" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">قهوه</span><span class="home-sub">Coffee</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('tea')">
+        <img src="bg-tea.jpg" class="home-card-bg" alt="چای و دمنوش" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">چای و دمنوش</span><span class="home-sub">Tea & Herbal</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('iced')">
+        <img src="bg-iced.jpg" class="home-card-bg" alt="آیس" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">آیس</span><span class="home-sub">Iced</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('breakfast')">
+        <img src="bg-breakfast.jpg" class="home-card-bg" alt="صبحانه" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">صبحانه</span><span class="home-sub">Breakfast</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('cold')">
+        <img src="bg-cold.jpg" class="home-card-bg" alt="سرد" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">سرد</span><span class="home-sub">Cold Drink</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('shake')">
+        <img src="bg-shake.jpg" class="home-card-bg" alt="شیک و آیس پک" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">شیک و آیس پک</span><span class="home-sub">Shake & Ice Pack</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('icecream')">
+        <img src="bg-icecream.jpg" class="home-card-bg" alt="بستنی" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">بستنی</span><span class="home-sub">Ice Cream</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('hot')">
+        <img src="bg-hot.jpg" class="home-card-bg" alt="هات" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">هات</span><span class="home-sub">Hot Drink</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('cake')">
+        <img src="bg-cake.jpg" class="home-card-bg" alt="کیک" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">کیک</span><span class="home-sub">Cake</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('fastfood')">
+        <img src="bg-fastfood.jpg" class="home-card-bg" alt="فست‌فود" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">فست‌فود</span><span class="home-sub">Fast Food</span></div>
+    </div>
+    <div class="home-card" onclick="openCategory('snack')">
+        <img src="bg-snack.jpg" class="home-card-bg" alt="میان وعده" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+        <div class="home-card-overlay"><span class="home-title">میان وعده</span><span class="home-sub">Snack</span></div>
+    </div>
+            </div>
+
+            <!-- نوار دسته‌بندی -->
+            <div id="categoryBar" class="categories hidden">
+                <button class="category-btn" onclick="showCategory('coffee',this)">☕ قهوه</button>
+                <button class="category-btn" onclick="showCategory('tea',this)">🍵 چای و دمنوش</button>
+                <button class="category-btn" onclick="showCategory('iced',this)">🧊 آیس</button>
+                <button class="category-btn" onclick="showCategory('breakfast',this)">🍳 صبحانه</button>
+                <button class="category-btn" onclick="showCategory('cold',this)">🥤 سرد</button>
+                <button class="category-btn" onclick="showCategory('shake',this)">🥛 شیک</button>
+                <button class="category-btn" onclick="showCategory('icecream',this)">🍦 بستنی</button>
+                <button class="category-btn" onclick="showCategory('hot',this)">☕ هات</button>
+                <button class="category-btn" onclick="showCategory('cake',this)">🍰 کیک</button>
+                <button class="category-btn" onclick="showCategory('fastfood',this)">🍔 فست‌فود</button> 
+              <button class="category-btn" onclick="showCategory('snack',this)">🥪 میان وعده</button>
+            </div>
+
+            <!-- لیست نوشیدنی‌ها -->
+            <div id="menuGrid" class="menu-grid"></div>
+        </section>
+
+        <!-- ===== FOOTER ===== -->
+        <footer>
+            <div class="footer-item"><span class="icon">📍</span> درگز - خیابان اصلی - پایین‌تر از بانک رفاه</div>
+            <div class="footer-item"><span class="icon">🕒</span> ساعت کاری: ۸ صبح تا ۱۱ شب</div>
+            <div class="footer-item"><span class="icon">📞</span> ۰۹۳۰۳۲۲۸۰۷۷</div>
+            <div class="footer-item">
+                <span onclick="showInsta()" style="cursor:pointer;" class="footer-link">Instagram</span>
+                <span style="color:#aaa; margin:0 6px;">•</span>
+                <a href="https://wa.me/989303228077" target="_blank" class="footer-link">WhatsApp</a>
+            </div>
+            <span class="footer-divider"></span>
+            <div class="footer-copy">© 2026 کافه ماهورا</div>
+        </footer>
+
+        <!-- ===== LIGHTBOX ===== -->
+        <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+            <img id="lightboxImg" src="">
+        </div>
+
+        <!-- ===== CART BOTTOM ===== -->
+        <div id="cartBottom" class="hidden-cart">
+            <div id="cartInfo">
+                <span id="cartCount">🛒 0</span>
+                <span id="cartTotal">💰 ۰ تومان</span>
+            </div>
+            <button onclick="checkout()" id="checkoutBtn">ثبت سفارش</button>
+        </div>
+
+        <!-- ===== PAYMENT MODAL ===== -->
+        <div id="paymentModal" class="modal">
+            <div class="modal-content">
+                <h2>💳 پرداخت سفارش</h2>
+                <p class="shop-name">☕ کافه ماهورا</p>
+                <div class="invoice-items" id="invoiceItems"></div>
+                <div class="invoice-total" id="invoiceTotal">💰 جمع کل: <span>۰ تومان</span></div>
+                <button class="btn-online" onclick="payOnline()">💳 پرداخت آنلاین</button>
+                <button class="btn-cash" onclick="pay()">💰 پرداخت در محل</button>
+                <button class="btn-cancel" onclick="closePayment()">❌ انصراف</button>
+            </div>
+        </div>
+
+        <!-- ===== SUCCESS MODAL ===== -->
+        <div id="successModal" class="modal">
+            <div class="modal-content">
+                <div style="width:70px; height:70px; background:linear-gradient(135deg,#27ae60,#2ecc71); border-radius:50%; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:36px; color:#fff; box-shadow:0 8px 25px rgba(39,174,96,0.3);">✓</div>
+                <h2 style="color:#27ae60;">پرداخت موفق</h2>
+                <p style="color:#888; margin-bottom:12px;">سفارش شما با موفقیت ثبت شد</p>
+                <div style="background:rgba(255,255,255,0.05); padding:8px 16px; border-radius:12px; display:inline-block; font-weight:700; margin-bottom:16px; color:#f5ede3;">🆔 <span id="orderNumber">MAH-12345</span></div>
+                <button onclick="closeSuccess()" style="padding:10px 40px; border-radius:30px; background:#c8a97e; color:#1a1a2e; font-weight:700; font-size:15px; border:none; cursor:pointer;">↩️ بازگشت</button>
+            </div>
+        </div>
+
+                <!-- ===== SIZE SELECTION MODAL ===== -->
+        <div id="sizeModal" class="modal" onclick="if(event.target===this) closeSizeModal()">
+            <div class="modal-content" style="max-width:320px;">
+                <h2 style="color:#f5ede3; margin-bottom:4px;">📏 انتخاب سایز</h2>
+                <p class="shop-name" id="sizeItemName">شیک شکلات</p>
+                <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">
+                    <button class="btn-size" onclick="selectSize('small')" id="sizeSmallBtn">
+                        <span style="font-size:18px;">🥤</span>
+                        <span style="font-size:16px; font-weight:700;">کوچک</span>
+                        <span style="font-size:14px; color:#c8a97e;" id="sizeSmallPrice">230,000 تومان</span>
+                    </button>
+                    <button class="btn-size" onclick="selectSize('large')" id="sizeLargeBtn">
+                        <span style="font-size:18px;">🥤</span>
+                        <span style="font-size:16px; font-weight:700;">بزرگ</span>
+                        <span style="font-size:14px; color:#c8a97e;" id="sizeLargePrice">275,000 تومان</span>
+                    </button>
+                </div>
+                <button class="btn-cancel" onclick="closeSizeModal()" style="color:#888; font-size:14px;">✕ انصراف</button>
+            </div>
+        </div>
+
+        <!-- ===== LOGIN REQUIRED MODAL ===== -->
+        <div id="loginRequiredModal" class="modal" onclick="if(event.target===this) closeLoginRequired()">
+            <div class="modal-content" style="max-width:340px;">
+                <div style="font-size:60px; margin-bottom:10px;">🔐</div>
+                <h2 style="color:#c8a97e; margin-bottom:10px;">ورود به حساب کاربری</h2>
+                <p style="color:#aaa; font-size:14px; line-height:1.8; margin-bottom:20px;">
+                    برای ثبت سفارش، ابتدا باید وارد حساب کاربری خود شوید.
+                </p>
+                <button class="btn-online" onclick="closeLoginRequired(); openUserAccount();" style="margin-bottom:8px;">👤 ورود / ثبت‌نام</button>
+                <button class="btn-cancel" onclick="closeLoginRequired()">✕ بعداً</button>
+            </div>
+        </div>
+
+        <!-- دکمه تماس -->
+        <a href="tel:09303228077" class="floating-call">📞</a>
+
+    </div><!-- پایان main-page -->
+
+    <!-- ===== SCRIPTS ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+    <script src="menu-data.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
