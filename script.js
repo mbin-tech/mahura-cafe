@@ -545,7 +545,7 @@ function pay() {
         itemsString += cartItems[key].name + ' × ' + cartItems[key].qty + ', ';
     }
 
-    // 🆕 اضافه کردن شماره تماس به سفارش
+    // اضافه کردن شماره تماس به سفارش
     var newOrder = {
         username: currentUser.username,
         phone: currentUser.phone || 'نامشخص',
@@ -607,7 +607,7 @@ window.onload = async function() {
     document.getElementById('categoryBar').classList.add('hidden');
     document.getElementById('menuGrid').style.display = 'none';
 
-    if (sessionStorage.getItem('mahura_in_menu') === 'true') {
+    if (sessionStorage.getItem('mahura_in_page') === 'true') {
         document.getElementById('landing-page').style.display = 'none';
         document.getElementById('main-page').style.display = 'block';
     }
@@ -718,7 +718,7 @@ function closeLoginRequired() {
     document.getElementById('loginRequiredModal').style.display = 'none';
 }
 
-// ===== ارسال پیام به گروه تلگرام =====
+// ===== ارسال پیام به گروه تلگرام (با no-cors برای GitHub Pages) =====
 async function sendTelegramNotification(order, total) {
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
         console.log('Telegram config missing');
@@ -728,7 +728,6 @@ async function sendTelegramNotification(order, total) {
     var now = new Date();
     var timeStr = now.toLocaleString('fa-IR');
 
-    // 🆕 اضافه کردن شماره تماس به پیام
     var message = '🔔 سفارش جدید!\n\n' +
                   '👤 مشتری: ' + order.username + '\n' +
                   '📱 شماره تماس: ' + (order.phone || 'نامشخص') + '\n' +
@@ -738,22 +737,18 @@ async function sendTelegramNotification(order, total) {
 
     var url = 'https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage';
 
+    var body = 'chat_id=' + encodeURIComponent(TELEGRAM_CHAT_ID) + 
+               '&text=' + encodeURIComponent(message);
+
     try {
-        var response = await fetch(url, {
+        await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
-                text: message
-            })
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
         });
-        var result = await response.json();
-        if (result.ok) {
-            console.log('✅ پیام تلگرام ارسال شد');
-        } else {
-            console.log('❌ خطا در ارسال:', result.description);
-        }
+        console.log('✅ درخواست ارسال به تلگرام فرستاده شد');
     } catch (err) {
         console.log('❌ خطای شبکه:', err.message);
     }
-}
+                }
