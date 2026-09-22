@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آپلود و تطبیق خودکار</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Vazirmatn", sans-serif;
+            background: #0a0a14;
+            color: #f5ede3;
+            padding: 15px;
+        }
+        h1 { color: #c8a97e; text-align: center; font-size: 20px; margin-bottom: 8px; }
+        p { text-align: center; color: #888; font-size: 13px; margin-bottom: 20px; }
+        .box {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 15px;
+        }
+        .box h2 { color: #c8a97e; font-size: 15px; margin-bottom: 12px; }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            background: #c8a97e;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+        .btn:disabled { background: #444; color: #888; }
+        .btn.red { background: #e74c3c; color: #fff; }
+        #fileInput { display: none; }
+        #log {
+            background: #0a0a14;
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.9;
+            font-family: monospace;
+            direction: rtl;
+            text-align: right;
+        }
+        .success { color: #27ae60; }
+        .error { color: #e74c3c; }
+        .info { color: #c8a97e; }
+        .warning { color: #f39c12; }
+    </style>
+</head>
+<body>
+
+<h1>🖼️ آپلود و تطبیق خودکار عکس‌ها</h1>
+<p>عکس‌ها با اسم اصلی ذخیره و خودکار به منو وصل می‌شن</p>
+
+<div class="box">
+    <h2>قدم ۱: پاک کردن Storage (اختیاری)</h2>
+    <button class="btn red" onclick="clearStorage()">🗑️ پاک کردن عکس‌های قبلی</button>
+</div>
+
+<div class="box">
+    <h2>قدم ۲: آپلود و تطبیق</h2>
+    <input type="file" id="fileInput" accept="image/*" multiple onchange="filesPicked(event)">
+    <button class="btn" onclick="document.getElementById('fileInput').click()">
+        📁 انتخاب همه عکس‌ها
+    </button>
+    <button class="btn" id="uploadBtn" onclick="startUpload()" disabled>
+        🚀 شروع آپلود و تطبیق
+    </button>
+</div>
+
+<div class="box">
+    <h2>📋 گزارش</h2>
+    <div id="log">آماده...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var pickedFiles = [];
+
+function log(msg, cls) {
+    var logEl = document.getElementById('log');
+    var div = document.createElement('div');
+    div.className = cls || 'info';
+    div.textContent = msg;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+function filesPicked(event) {
+    pickedFiles = Array.from(event.target.files);
+    log('📁 ' + pickedFiles.length + ' عکس انتخاب شد', 'info');
+    document.getElementById('uploadBtn').disabled = false;
+}
+
+async function clearStorage() {
+    if (!confirm('همه عکس‌های قبلی پاک بشن؟')) return;
+    
+    log('🗑️ در حال پاک کردن...', 'info');
+    
+    var listResult = await db.storage.from('menu-images').list('', { limit: 500 });
+    if (listResult.error) {
+        log('❌ خطا: ' + listResult.error.message, 'error');
+        return;
+    }
+    
+    var files = listResult.data.filter(f => f.name);
+    if (files.length === 0) {
+        log('✅ Storage خالیه', 'success');
+        return;
+    }
+    
+    var names = files.map(f => f.name);
+    var delResult = await db.storage.from('menu-images').remove(names);
+    
+    if (delResult.error) {
+        log('❌ خطا در حذف: ' + delResult.error.message, 'error');
+        return;
+    }
+    
+    log('✅ ' + names.length + ' عکس پاک شد', 'success');
+}
+
+async function startUpload() {
+    if (pickedFiles.length === 0) return;
+    
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('log').innerHTML = '';
+    
+    log('🚀 شروع آپلود ' + pickedFiles.length + ' عکس...', 'info');
+    log('', 'info');
+    
+    // خواندن آیتم‌ها
+    log('📋 خواندن آیتم‌های جدول...', 'info');
+    var itemsResult = await db.from('menu_items').select('id, name, img');
+    if (itemsResult.error) {
+        log('❌ خطا: ' + itemsResult.error.message, 'error');
+        return;
+    }
+    var allItems = itemsResult.data;
+    log('✅ ' + allItems.length + ' آیتم در جدول', 'success');
+    log('', 'info');
+    
+    // آپلود هر عکس با اسم نرمال‌شده
+    var uploadedMap = {}; // نام بدون پسوند → url
+    
+    for (var i = 0; i < pickedFiles.length; i++) {
+        var file = pickedFiles[i];
+        var originalName = file.name;
+        var ext = originalName.split('.').pop();
+        var baseName = originalName.replace('.' + ext, '');
+        
+        // اسم امن: جایگزینی فاصله با _ (حفظ فارسی)
+        var safeName = baseName.replace(/\s+/g, '_') + '.' + ext;
+        var key = baseName.replace(/\s+/g, '_');
+        
+        log('📷 [' + (i+1) + '/' + pickedFiles.length + '] ' + originalName, 'info');
+        
+        var uploadResult = await db.storage
+            .from('menu-images')
+            .upload(safeName, file, { cacheControl: '3600', upsert: true });
+        
+        if (uploadResult.error) {
+            log('  ❌ خطا: ' + uploadResult.error.message, 'error');
+            continue;
+        }
+        
+        var url = db.storage.from('menu-images').getPublicUrl(safeName).data.publicUrl;
+        uploadedMap[key] = url;
+        log('  ✅ آپلود شد', 'success');
+    }
+    
+    log('', 'info');
+    log('🔗 شروع تطبیق خودکار...', 'info');
+    log('', 'info');
+    
+    // تطبیق با آیتم‌ها
+    var matched = 0;
+    var notMatched = 0;
+    
+    for (var j = 0; j < allItems.length; j++) {
+        var item = allItems[j];
+        var itemKey = item.name.replace(/\s+/g, '_');
+        
+        if (uploadedMap[itemKey]) {
+            var updateResult = await db
+                .from('menu_items')
+                .update({ img: uploadedMap[itemKey] })
+                .eq('id', item.id);
+            
+            if (updateResult.error) {
+                log('❌ "' + item.name + '": ' + updateResult.error.message, 'error');
+            } else {
+                log('✅ "' + item.name + '" ← لینک شد', 'success');
+                matched++;
+            }
+        } else {
+            notMatched++;
+        }
+    }
+    
+    log('', 'info');
+    log('🎉 تمام!', 'info');
+    log('✅ تطبیق موفق: ' + matched, 'success');
+    log('⚠️ بدون عکس: ' + notMatched + ' (این آیتم‌ها عکس ندارن)', 'warning');
+}
+
+</script>
+</body>
+</html>
