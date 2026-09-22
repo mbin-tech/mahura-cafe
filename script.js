@@ -545,8 +545,10 @@ function pay() {
         itemsString += cartItems[key].name + ' × ' + cartItems[key].qty + ', ';
     }
 
+    // 🆕 اضافه کردن شماره تماس به سفارش
     var newOrder = {
         username: currentUser.username,
+        phone: currentUser.phone || 'نامشخص',
         items: itemsString,
         date: new Date().toISOString()
     };
@@ -555,7 +557,7 @@ function pay() {
     allOrders.push(newOrder);
     localStorage.setItem('mahura_orders', JSON.stringify(allOrders));
 
-    // 🆕 ارسال پیام به گروه تلگرام
+    // ارسال پیام به گروه تلگرام
     sendTelegramNotification(newOrder, cartTotal);
 
     document.getElementById('paymentModal').style.display = 'none';
@@ -726,8 +728,10 @@ async function sendTelegramNotification(order, total) {
     var now = new Date();
     var timeStr = now.toLocaleString('fa-IR');
 
+    // 🆕 اضافه کردن شماره تماس به پیام
     var message = '🔔 سفارش جدید!\n\n' +
                   '👤 مشتری: ' + order.username + '\n' +
+                  '📱 شماره تماس: ' + (order.phone || 'نامشخص') + '\n' +
                   '🕐 زمان: ' + timeStr + '\n\n' +
                   '📋 آیتم‌ها:\n' + order.items + '\n' +
                   '💰 جمع کل: ' + total.toLocaleString() + ' تومان';
