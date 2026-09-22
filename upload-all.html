@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آپلود گروهی عکس‌ها</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Vazirmatn", sans-serif;
+            background: #0a0a14;
+            color: #f5ede3;
+            padding: 20px;
+        }
+        h1 {
+            color: #c8a97e;
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        p {
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .box {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .box h2 {
+            color: #c8a97e;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        .pick-btn {
+            width: 100%;
+            padding: 16px;
+            background: #c8a97e;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .pick-btn:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+        }
+        #fileInput {
+            display: none;
+        }
+        .selected-files {
+            background: #0a0a14;
+            border-radius: 10px;
+            padding: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+        .selected-files div {
+            padding: 4px 8px;
+            border-bottom: 1px solid #2d2d44;
+            color: #aaa;
+        }
+        .log {
+            background: #0a0a14;
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.8;
+            font-family: monospace;
+            direction: ltr;
+            text-align: left;
+        }
+        .log .success { color: #27ae60; }
+        .log .error { color: #e74c3c; }
+        .log .info { color: #c8a97e; }
+        .log .warning { color: #f39c12; }
+        .summary {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+        .summary .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #2d2d44;
+        }
+        .summary .row:last-child {
+            border-bottom: none;
+        }
+        .summary .num {
+            font-weight: 700;
+            color: #c8a97e;
+        }
+    </style>
+</head>
+<body>
+
+<h1>📤 آپلود گروهی عکس‌ها</h1>
+<p>همه‌ی عکس‌های منو رو یک‌جا آپلود کن</p>
+
+<div class="box">
+    <h2>1️⃣ عکس‌ها رو انتخاب کن</h2>
+    <input type="file" id="fileInput" accept="image/*" multiple onchange="filesSelected(event)">
+    <button class="pick-btn" onclick="document.getElementById('fileInput').click()">
+        📁 انتخاب عکس‌ها (چند تایی)
+    </button>
+    <div class="selected-files" id="selectedFiles"></div>
+</div>
+
+<div class="box">
+    <h2>2️⃣ آپلود</h2>
+    <button class="pick-btn" id="uploadBtn" onclick="startUpload()" disabled>
+        🚀 شروع آپلود
+    </button>
+    <div class="log" id="log">آماده برای شروع...</div>
+</div>
+
+<div class="summary" id="summary"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var selectedFiles = [];
+var uploadedCount = 0;
+var failedCount = 0;
+var skippedCount = 0;
+
+function log(msg, cls) {
+    var logEl = document.getElementById('log');
+    var div = document.createElement('div');
+    div.className = cls || 'info';
+    div.textContent = msg;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+function filesSelected(event) {
+    selectedFiles = Array.from(event.target.files);
+    
+    var selectedDiv = document.getElementById('selectedFiles');
+    selectedDiv.style.display = 'block';
+    selectedDiv.innerHTML = '<strong>' + selectedFiles.length + ' عکس انتخاب شد:</strong>';
+    
+    selectedFiles.forEach(function(file, i) {
+        var div = document.createElement('div');
+        div.textContent = (i + 1) + '. ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        selectedDiv.appendChild(div);
+    });
+    
+    document.getElementById('uploadBtn').disabled = false;
+}
+
+async function startUpload() {
+    if (selectedFiles.length === 0) {
+        log('❌ هیچ عکسی انتخاب نشده!', 'error');
+        return;
+    }
+    
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('log').innerHTML = '';
+    
+    log('🚀 شروع آپلود ' + selectedFiles.length + ' عکس...', 'info');
+    log('', 'info');
+    
+    uploadedCount = 0;
+    failedCount = 0;
+    skippedCount = 0;
+    
+    // چک کردن جدول
+    log('📋 خواندن آیتم‌های منو...', 'info');
+    var itemsResult = await db.from('menu_items').select('id, name, img');
+    if (itemsResult.error) {
+        log('❌ خطا در خواندن جدول: ' + itemsResult.error.message, 'error');
+        return;
+    }
+    
+    var allItems = itemsResult.data;
+    log('✅ ' + allItems.length + ' آیتم در جدول پیدا شد', 'success');
+    log('', 'info');
+    
+    // آپلود هر عکس
+    for (var i = 0; i < selectedFiles.length; i++) {
+        var file = selectedFiles[i];
+        
+        log('📷 [' + (i+1) + '/' + selectedFiles.length + '] ' + file.name, 'info');
+        
+        // ساخت اسم یکتا برای فایل
+        var ext = file.name.split('.').pop();
+        var baseName = file.name.replace('.' + ext, '');
+        var fileName = 'img_' + Date.now() + '_' + i + '.' + ext;
+        
+        // آپلود در Supabase
+        var uploadResult = await db.storage
+            .from('menu-images')
+            .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+        
+        if (uploadResult.error) {
+            log('  ❌ خطا در آپلود: ' + uploadResult.error.message, 'error');
+            failedCount++;
+            continue;
+        }
+        
+        // گرفتن لینک عمومی
+        var urlResult = db.storage
+            .from('menu-images')
+            .getPublicUrl(fileName);
+        
+        var publicUrl = urlResult.data.publicUrl;
+        log('  ✅ آپلود شد', 'success');
+        
+        // پیدا کردن آیتم مربوطه در جدول
+        // اسم فایل بدون پسوند = اسم آیتم
+        var matchingItems = allItems.filter(function(item) {
+            return item.img === file.name || 
+                   item.img === baseName + '.' + ext ||
+                   item.name === baseName;
+        });
+        
+        if (matchingItems.length > 0) {
+            // آپدیت آیتم‌ها
+            for (var j = 0; j < matchingItems.length; j++) {
+                var item = matchingItems[j];
+                var updateResult = await db
+                    .from('menu_items')
+                    .update({ img: publicUrl })
+                    .eq('id', item.id);
+                
+                if (updateResult.error) {
+                    log('  ⚠️ خطا در آپدیت "' + item.name + '": ' + updateResult.error.message, 'warning');
+                } else {
+                    log('  🔗 لینک شد به: "' + item.name + '"', 'success');
+                }
+            }
+        } else {
+            log('  ⚠️ آیتمی با این اسم پیدا نشد (اسم فایل: ' + baseName + ')', 'warning');
+            skippedCount++;
+        }
+    }
+    
+    log('', 'info');
+    log('🎉 تمام!', 'info');
+    
+    // نمایش خلاصه
+    var summary = document.getElementById('summary');
+    summary.style.display = 'block';
+    summary.innerHTML = 
+        '<h2 style="color:#c8a97e; margin-bottom:10px;">📊 خلاصه</h2>' +
+        '<div class="row"><span>کل عکس‌ها:</span><span class="num">' + selectedFiles.length + '</span></div>' +
+        '<div class="row"><span>آپلود موفق:</span><span class="num" style="color:#27ae60;">' + uploadedCount + '</span></div>' +
+        '<div class="row"><span>آپلود ناموفق:</span><span class="num" style="color:#e74c3c;">' + failedCount + '</span></div>' +
+        '<div class="row"><span>آیتم بدون تطبیق:</span><span class="num" style="color:#f39c12;">' + skippedCount + '</span></div>';
+}
+</script>
+</body>
+</html>
